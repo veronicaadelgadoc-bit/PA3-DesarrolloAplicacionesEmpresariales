@@ -1,0 +1,45 @@
+digraph PA3 {
+  rankdir=TB;
+  graph [fontname="Helvetica", fontsize=11, nodesep=0.35, ranksep=0.42, pad=0.2];
+  node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#FFFFFF", color="#5f6368"];
+  edge  [fontname="Helvetica", fontsize=8.5, color="#5f6368"];
+
+  nav [label="Navegador / Postman\nGET /reportes/pedidos · GET /api/v1/pedidos/...\nPOST /pedidos (form + _csrf)", shape=note, fillcolor="#FFF8E1"];
+
+  subgraph cluster_app {
+    label="sistema-pedidos-springboot  (Spring Boot 4.1 · Tomcat embebido · :8081 /sistema-pedidos)";
+    fontcolor="#1a56db"; color="#1a56db"; style="dashed,rounded";
+
+    sec [label="Spring Security Filter Chain\nCsrfFilter · formLogin (sesión) · AuthorizationFilter\nGET /reportes/** y reportes JSON → OPERADOR, CONSULTA\nPOST /pedidos → solo OPERADOR", fillcolor="#FDECEA"];
+    ds  [label="DispatcherServlet (Spring MVC)", fillcolor="#EEF2FF"];
+
+    subgraph cluster_ctrl { label=""; style=invis;
+      webc  [label="PedidoReporteWebController  [PA3]\n@Controller · @GetMapping · Model\nViewResolver → /WEB-INF/views/reportes-pedidos.jsp", fillcolor="#E8F5E9"];
+      apic  [label="PedidoReporteController\n@RestController · JSON\n+ busqueda-avanzada, clientes-frecuentes  [PA3]\nReporteApiExceptionHandler (400 / 503)  [PA3]", fillcolor="#E8F5E9"];
+      pedc  [label="PedidoController\n@Controller (registro de pedidos)", fillcolor="#F1F3F4"];
+    }
+
+    rsvc [label="PedidoReporteService → PedidoReporteServiceImpl\n@Service · @Transactional(readOnly)\nvalidaciones PA3: cliente, totalMinimo >= 0, minPedidos >= 1", fillcolor="#E3F2FD"];
+    psvc [label="PedidoService → PedidoServiceImpl\n@Service · @Transactional", fillcolor="#F1F3F4"];
+
+    jdbc [label="PedidoReporteJdbcRepository  (Spring JDBC)\nNamedParameterJdbcTemplate · PedidoRowMapper\nClienteFrecuenteProjection · GROUP BY / HAVING  [PA3]", fillcolor="#FFF3E0"];
+    jpa  [label="PedidoRepository\nSpring Data JPA (CRUD existente)", fillcolor="#F1F3F4"];
+    inv  [label="InventarioClient → InventarioRestClient\nSpring RestClient", fillcolor="#F1F3F4"];
+  }
+
+  mysql [label="MySQL 8 · pedidosdb\ntabla pedido\n(H2 en memoria solo en pruebas)", shape=cylinder, fillcolor="#E0F7FA"];
+  invsvc [label="inventario-service (externo)\nJakarta EE · WildFly :8082\nSQL Server InventarioDB", fillcolor="#FFF8E1", color="#d9480f"];
+
+  nav -> sec [label="HTTP + cookie de sesión"];
+  sec -> ds;
+  ds -> webc; ds -> apic; ds -> pedc;
+  webc -> rsvc [label="misma capa Service"];
+  apic -> rsvc;
+  pedc -> psvc;
+  rsvc -> jdbc;
+  psvc -> jpa;
+  psvc -> inv;
+  jdbc -> mysql [label="SQL parametrizado"];
+  jpa -> mysql [label="Hibernate"];
+  inv -> invsvc [label="HTTP/JSON (integración externa)", color="#d9480f", fontcolor="#d9480f"];
+}
