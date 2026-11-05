@@ -14,6 +14,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configuración de Spring Security.
+ *
+ * <p>[PA3] Matriz de accesos vigente:</p>
+ * <ul>
+ *   <li>GET /reportes/** y GET de los endpoints de reportes: OPERADOR y CONSULTA.</li>
+ *   <li>Otros métodos sobre /reportes/**: denegados (módulo de solo lectura).</li>
+ *   <li>POST /pedidos: exclusivo de OPERADOR.</li>
+ *   <li>Usuario anónimo: redirigido al formulario de login ({@code formLogin}).</li>
+ * </ul>
+ *
+ * <p>La protección CSRF se mantiene <strong>habilitada</strong> (comportamiento por
+ * defecto; no se invoca {@code csrf().disable()}): todo POST con sesión debe
+ * enviar un token válido, incluidos el registro de pedidos y el logout.</p>
+ */
 @Configuration
 public class SecurityConfig {
 
@@ -24,6 +39,17 @@ public class SecurityConfig {
             .requestMatchers("/h2-console/**").denyAll()
             .requestMatchers(HttpMethod.POST, "/pedidos")
               .hasAnyRole("OPERADOR")
+            // [PA3] Vista MVC de reportes: lectura para OPERADOR y CONSULTA.
+            .requestMatchers(HttpMethod.GET, "/reportes/**")
+              .hasAnyRole("OPERADOR", "CONSULTA")
+            // [PA3] Los reportes son de solo lectura: cualquier otro método se rechaza.
+            .requestMatchers("/reportes/**")
+              .denyAll()
+            // [PA3] Endpoints JSON del módulo de reportes, declarados explícitamente.
+            .requestMatchers(HttpMethod.GET,
+                "/api/v1/pedidos/busqueda-avanzada",
+                "/api/v1/pedidos/clientes-frecuentes")
+              .hasAnyRole("OPERADOR", "CONSULTA")
             .requestMatchers(HttpMethod.GET, "/api/v1/pedidos", "/api/v1/pedidos/**")
               .hasAnyRole("OPERADOR", "CONSULTA")
             .requestMatchers(HttpMethod.GET, "/pedidos")

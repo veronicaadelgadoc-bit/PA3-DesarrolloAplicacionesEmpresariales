@@ -19,8 +19,13 @@
             <p class="eyebrow">Spring Boot 4.1 · Spring MVC · Inyección de Dependencias</p>
             <h1>Sistema de Pedidos</h1>
             <p class="subtitulo">
-                El catálogo, precio y stock provienen de inventario-service; H2 conserva los pedidos durante la ejecución.
+                El catálogo, precio y stock provienen de inventario-service; MySQL conserva los pedidos.
             </p>
+            <%-- [PA3] Acceso a la nueva vista de reportes --%>
+            <c:url var="reportesUrl" value="/reportes/pedidos"/>
+            <nav class="navegacion">
+                <a href="${reportesUrl}">Reportes de pedidos →</a>
+            </nav>
         </div>
         <c:url var="logoutUrl" value="/logout"/>
         <form method="post" action="${logoutUrl}">
