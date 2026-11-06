@@ -33,7 +33,7 @@
             <button type="submit">Cerrar sesión</button>
         </form>
         <div class="flujo">
-            DispatcherServlet → Controller → Service → RestClient → inventario-service · Pedido → H2
+            DispatcherServlet → Controller → Service → RestClient → inventario-service · Pedido → MySQL
         </div>
     </header>
 
